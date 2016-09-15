@@ -4,4 +4,4 @@ class dotdict(dict):
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
 
-database_dir = ""
+database_dir = "/Users/lykensyu/Documents/ucf_sports_actions/"

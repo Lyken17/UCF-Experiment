@@ -95,5 +95,5 @@ def main():
 if __name__ == '__main__':
     data = main()
     # data = {}
-    with open("data/collection.json", "w+") as fp:
+    with open(cfg.output_dir, "w+") as fp:
         json.dump(data, fp, indent=4)

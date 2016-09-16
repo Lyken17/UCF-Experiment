@@ -5,3 +5,4 @@ class dotdict(dict):
     __delattr__ = dict.__delitem__
 
 database_dir = "/Users/lykensyu/Documents/ucf_sports_actions/"
+output_dir = "data/collection.json"

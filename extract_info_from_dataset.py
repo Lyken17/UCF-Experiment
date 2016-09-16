@@ -11,7 +11,7 @@ import config as cfg
 
 
 
-def go_through():
+def read_from_file():
     data_table = dict()
 
     for dirpath, dirnames, filenames in os.walk(cfg.database_dir):
@@ -23,10 +23,13 @@ def go_through():
 
                 fpath = path_join(dirpath, filename)
                 if filename.endswith(".jpg"):
-                    data_table[fname]["image"] = fpath
+                    if fpath.find("jpeg") == -1:
+                        data_table[fname]["image"] = fpath
 
                 if filename.endswith(".txt") or filename.endswith(".tif"):
                     data_table[fname]["joint"] = fpath
+
+
 
     # print json.dumps(data_table, indent=4)
 
@@ -42,23 +45,20 @@ def go_through():
 
     print "Total :", c1
     print "Useful :", c2
-    return data_table
+    return new_table
 
 
 def main():
     import re
-    spli = re.compile(r'[\s\t]+')
-    table = go_through()
-    import random
-    # table = table.values()
-    # random.shuffle(table)
-    cnt = 0
-    # print table
-    # print table[0]
-    # return
+    table = read_from_file()
 
-    for key in table:
-        each = table[key]
+    cnt = 0
+    SHOWIMG = False
+
+    l_table = table.values()
+    new_table = []
+    for each in l_table:
+
         img_path = each["image"]
         joint_path = each["joint"]
         image = cv2.imread(img_path)
@@ -67,20 +67,33 @@ def main():
 
         with open(joint_path, 'r') as fp:
             line = fp.read()
+            estimate = [int(each) for each in re.split(r'[\s\t]+', line)[:4]]
+            belong = re.split(r'[\s\t]+', line)[-1]
+
+        if SHOWIMG:
             joint = [int(each) for each in re.split(r'[\s\t]+', line)[:4]]
             joint[2] += joint[0]
             joint[3] += joint[1]
-        # print line
-        # print joint
-        pts = np.array([[joint[0], joint[1]], [joint[2], joint[1]],  [joint[2], joint[3]], [joint[0], joint[3]]])
-        cv2.polylines(image, [pts], True, (0, 0, 255))
-        cv2.imshow("frame", image)
-        cv2.waitKey(0)
+            pts = np.array([[joint[0], joint[1]], [joint[2], joint[1]], [joint[2], joint[3]], [joint[0], joint[3]]])
+            cv2.polylines(image, [pts], True, (0, 0, 255))
+            cv2.imshow("frame", image)
+            cv2.waitKey(0)
 
+        temp_data = {}
+        temp_data["image"] = img_path
+        temp_data["joint"] = estimate
+        temp_data["attr"] = belong
+        # print json.dumps(temp_data, indent=4)
+        new_table.append(temp_data)
         cnt += 1
-        if cnt >= 50:
-            break
-    cv2.destroyAllWindows()
+
+    if SHOWIMG:
+        cv2.destroyAllWindows()
+
+    return new_table
 
 if __name__ == '__main__':
-    main()
+    data = main()
+    # data = {}
+    with open("data/collection.json", "w+") as fp:
+        json.dump(data, fp, indent=4)
